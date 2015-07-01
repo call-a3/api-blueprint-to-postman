@@ -1,0 +1,578 @@
+{
+  "_version": "3.0",
+  "metadata": [{
+    "name": "FORMAT",
+    "value": "1A"
+  }, {
+    "name": "HOST",
+    "value": "https://api.skedify.co"
+  }],
+  "name": "Skedify API Specification 0.1.0-draft.1",
+  "description": "<sub>*The key words \"MUST\", \"MUST NOT\", \"REQUIRED\", \"SHALL\", \"SHALL NOT\", \"SHOULD\", \"SHOULD NOT\", \"RECOMMENDED\",  \"MAY\", and \"OPTIONAL\" in this document are to be interpreted as described in [[RFC 2119]](https://www.ietf.org/rfc/rfc2119.txt).*</sub>\n\n## Introduction\n\nThis document describes the specification of the Skedify API, hereafter referenced as 'the API'. This contains a description of the functionality that is made available by the API, as well as the architectural style it should use and the protocol by which it is offered.  \nWhen there is room for interpretation in any of these aspects, this document also tries to specify how the API must resolve these ambiguities.\nWe do this to provide a reference document, both to the implementers and the consumers of the API, and to ensure there is a unified interface that all parties must adhere to and can rely on for their own use.\n\n\n## Terms of Use\n\nSkedify is a proprietary product and trademark of Cloudcube bvba.\nThe usage of the API is licensed as a commercial service to the clients of Skedify.\nBy using the API you are agreeing to the [terms of use](https://skedify.co/terms).\n\n\n## Versioning\n\nThe version number of the Skedify API *SHOULD* adhere to [Semantic Versioning 2.0.0](http://semver.org/spec/v2.0.0.html) or any of it's backwards compatible versions (2.\\*.\\*). In the event a new and non-backwards-compatible version of SemVer is released, the project *MAY* migrate to this new version.\n\nAt any time, the major and minor version numbers of this specification and the API *MUST* match with respect to the described behaviour and/or features in such versions. However, patch version numbers can differ freely to allow bug fixes in the API and/or clarifications in this specification to be applied and released independently of each other.\n\nTo allow consumers to move to a newer release of the API, different versions might be available concurrently during a transitioning period. Clients *SHOULD* provide the version they are expecting from the API in the following HTTP header: `Expect: application/vnd.skedify.v{major}+json`, where `{major}` corresponds to the major version of the API that is expected. If this header is not specified, or if a more generic header is provided, the API *MUST* assume that the most recent version is expected.\n\nA consumer *MAY* specify it's own implementation version in the custom HTTP header `X-Requested-With: ({consumer-implementation-name-as-FQDN}/{consumer-implementation-version})`.  \nE.g., the official Skedify web plugin might present itself as `X-Requested-With: web.plugin.skedify.co./{semver}`, whereas a fictional third-party implementer of a custom client (e.g. as a PHP library) might use `X-Requested-With: skedify.example.com./{semver}`.\n\nIn turn, the API *MAY* expose its own full version in the header `X-Responded-With: api.skedify.co./{semver}`.\n\nThe use of these last two headers is *RECOMMENDED* for debugging purposes.\n\n\n## Security\n\n- TLS/HTTPS\n\n- Including images from static domains\n\n\n## Authentication\n\n- OAuth2\n\n\n## Authorization\n\n- Scopes?\n\n- Any endpoint can return filtered result sets, or only accept limited input based on your current authorization status.\n\n  ### Context\n\n  [TODO review this: it is very unRESTful (although it might not seem like it) to expose URI parts but ignore and replace them with some other logic](TODO)\n\n  Almost every call you make will be in the context of the __enterprise__ you're currently authenticated for. Thus if\n  you're retrieving `/offices`, the result will _only_ include offices linked to _your_ enterprise. If you're retrieving\n  a subset resource, e.g. `/enterprises/:id/settings`, the `:id` parameter does not have _any_ influence whatsoever.\n  Though it is necessary to provide RESTful API endpoints.\n\n  The above also applies to any request you make. For instance, an `enterprise_id` field in a request will be ignored\n  and replaced with the `id` of your actual enterprise.\n\n\n## Requests and Responses\n\n### Responses\n\n#### Data\n\nThe `data` object in a response is where you can find the actual results of your request.\n\n__Note__ that if this documentation refers to \"returns a _resource_ object/array\", the value of the `data` object is meant.\n\n#### Errors\n\nMost responses (except `402`s) will also return an `errors` array in addition to a `data` object/array. If the response is of the `2xx` type, the `errors` object can contain _warnings_ to indiciate what went wrong. For example:\n\n- `GET` `/resource` could not find any results, though it will still return __an empty array__. The `errors` object will contain at least one object with more information about the situation.\n\nAny endpoint can of course return the following HTTP status codes:\n\n- 404: URL not found (sometimes also _resource not found_)\n\n- 500: internal server error\n\n#### Meta\n\nOur API currently does not support any metadata other than `data` and `errors`, but might in the future.\n\n\n## Support\n\nFor all your questions: [support@skedify.co](mailto:support@skedify.co)\n\n<!--- seperate resource sections --->\n\n<!--- groups --->\n",
+  "element": "category",
+  "resourceGroups": [{
+    "name": "OAuth2",
+    "description": "",
+    "resources": [{
+      "element": "resource",
+      "name": "Server-based authentication",
+      "description": "",
+      "uriTemplate": "/oauth/{+path}",
+      "model": {},
+      "parameters": [],
+      "actions": [{
+        "name": "Authenticate from an external client",
+        "description": "",
+        "method": "GET",
+        "parameters": [{
+          "name": "client_id",
+          "description": "The client ID you received from Skedify when you registered your client implementation.",
+          "type": "string",
+          "required": true,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "redirect_uri",
+          "description": "The URL where users will be sent after authorization.",
+          "type": "string",
+          "required": false,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "Default",
+          "description": "",
+          "type": "",
+          "required": true,
+          "default": "",
+          "example": "https://first-configured-URL-for-your-client",
+          "values": []
+        }, {
+          "name": "scope",
+          "description": "A comma-seperated list of scopes.",
+          "type": "string",
+          "required": false,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "Default",
+          "description": "",
+          "type": "",
+          "required": true,
+          "default": "",
+          "example": "``",
+          "values": []
+        }, {
+          "name": "state",
+          "description": "A hard-to-guess random string.",
+          "type": "string",
+          "required": false,
+          "default": "",
+          "example": "",
+          "values": []
+        }],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": "/oauth/authorize"
+        },
+        "content": [],
+        "examples": [{
+          "name": "",
+          "description": "",
+          "requests": [],
+          "responses": [{
+            "name": "303",
+            "description": "Request is redirected to the provided redirect_uri if it matches one of the URLs configured for the client.\n",
+            "headers": [{
+              "name": "Content-Type",
+              "value": "application/json"
+            }, {
+              "name": "```",
+              "value": ""
+            }, {
+              "name": "Location",
+              "value": "redirect_uri?code=...&state=..."
+            }, {
+              "name": "```",
+              "value": ""
+            }],
+            "body": "```\n{\n\"code\": \"alphanumericString\",\n\"state\": \"same-as-provided-state\"\n}\n```\n\n",
+            "schema": "",
+            "content": [{
+              "element": "asset",
+              "attributes": {
+                "role": "bodyExample"
+              },
+              "content": "```\n{\n\"code\": \"alphanumericString\",\n\"state\": \"same-as-provided-state\"\n}\n```\n\n"
+            }]
+          }]
+        }]
+      }, {
+        "name": "Fetch an access token",
+        "description": "",
+        "method": "POST",
+        "parameters": [{
+          "name": "client_id",
+          "description": "The client ID you received from Skedify when you registered your client implementation.",
+          "type": "string",
+          "required": true,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "client_secret",
+          "description": "The client secret you received when you registered your client implementation.",
+          "type": "string",
+          "required": true,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "code",
+          "description": "The code you received as a response to the previous step.",
+          "type": "string",
+          "required": true,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "redirect_uri",
+          "description": "The URL where users will be sent after authorization.",
+          "type": "string",
+          "required": false,
+          "default": "",
+          "example": "",
+          "values": []
+        }],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": "/oauth/access_token"
+        },
+        "content": [],
+        "examples": [{
+          "name": "",
+          "description": "",
+          "requests": [],
+          "responses": [{
+            "name": "200",
+            "description": "",
+            "headers": [{
+              "name": "Content-Type",
+              "value": "application/json"
+            }],
+            "body": "Response contains a hexadecimal access_token, the type of token that is returned and\n\n{\n\"access_token\": \"0123456789abcdef\",\n\"scope\": \"\",\n\"expires_in\": 3600000,\n\"token_type\": \"Bearer\"\n}\n",
+            "schema": "",
+            "content": [{
+              "element": "asset",
+              "attributes": {
+                "role": "bodyExample"
+              },
+              "content": "Response contains a hexadecimal access_token, the type of token that is returned and\n\n{\n\"access_token\": \"0123456789abcdef\",\n\"scope\": \"\",\n\"expires_in\": 3600000,\n\"token_type\": \"Bearer\"\n}\n"
+            }]
+          }]
+        }]
+      }],
+      "content": []
+    }]
+  }, {
+    "name": "Enterprise",
+    "description": "",
+    "resources": [{
+      "element": "resource",
+      "name": "Enterprises",
+      "description": "",
+      "uriTemplate": "/enterprises",
+      "model": {},
+      "parameters": [],
+      "actions": [{
+        "name": "Retrieve Enterprises",
+        "description": "Retrieve the list of enterprises.\n\n",
+        "method": "GET",
+        "parameters": [],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": ""
+        },
+        "content": [],
+        "examples": [{
+          "name": "",
+          "description": "",
+          "requests": [],
+          "responses": [{
+            "name": "200",
+            "description": "",
+            "headers": [],
+            "body": "",
+            "schema": "",
+            "content": []
+          }]
+        }]
+      }, {
+        "name": "Create an enterprise",
+        "description": "",
+        "method": "POST",
+        "parameters": [],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": ""
+        },
+        "content": [],
+        "examples": [{
+          "name": "",
+          "description": "",
+          "requests": [{
+            "name": "",
+            "description": "",
+            "headers": [],
+            "body": "",
+            "schema": "",
+            "content": []
+          }],
+          "responses": [{
+            "name": "201",
+            "description": "",
+            "headers": [],
+            "body": "",
+            "schema": "",
+            "content": []
+          }, {
+            "name": "400",
+            "description": "",
+            "headers": [],
+            "body": "Validation error\n",
+            "schema": "",
+            "content": [{
+              "element": "asset",
+              "attributes": {
+                "role": "bodyExample"
+              },
+              "content": "Validation error\n"
+            }]
+          }]
+        }]
+      }, {
+        "name": "Retrieve Enterprise",
+        "description": "### Edit (part of) an enterprise [PATCH /enterprises/{eid}]\n\n",
+        "method": "GET",
+        "parameters": [],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": "/enterprises/{eid}"
+        },
+        "content": [],
+        "examples": []
+      }, {
+        "name": "Replace an enterprise",
+        "description": "",
+        "method": "PUT",
+        "parameters": [],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": "/enterprises/{eid}"
+        },
+        "content": [],
+        "examples": []
+      }, {
+        "name": "Remove an enterprise",
+        "description": "",
+        "method": "DELETE",
+        "parameters": [],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": "/enterprises/{eid}"
+        },
+        "content": [],
+        "examples": []
+      }],
+      "content": []
+    }]
+  }],
+  "content": [{
+    "element": "category",
+    "attributes": {
+      "name": "OAuth2"
+    },
+    "content": [{
+      "element": "resource",
+      "name": "Server-based authentication",
+      "description": "",
+      "uriTemplate": "/oauth/{+path}",
+      "model": {},
+      "parameters": [],
+      "actions": [{
+        "name": "Authenticate from an external client",
+        "description": "",
+        "method": "GET",
+        "parameters": [{
+          "name": "client_id",
+          "description": "The client ID you received from Skedify when you registered your client implementation.",
+          "type": "string",
+          "required": true,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "redirect_uri",
+          "description": "The URL where users will be sent after authorization.",
+          "type": "string",
+          "required": false,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "Default",
+          "description": "",
+          "type": "",
+          "required": true,
+          "default": "",
+          "example": "https://first-configured-URL-for-your-client",
+          "values": []
+        }, {
+          "name": "scope",
+          "description": "A comma-seperated list of scopes.",
+          "type": "string",
+          "required": false,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "Default",
+          "description": "",
+          "type": "",
+          "required": true,
+          "default": "",
+          "example": "``",
+          "values": []
+        }, {
+          "name": "state",
+          "description": "A hard-to-guess random string.",
+          "type": "string",
+          "required": false,
+          "default": "",
+          "example": "",
+          "values": []
+        }],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": "/oauth/authorize"
+        },
+        "content": [],
+        "examples": [{
+          "name": "",
+          "description": "",
+          "requests": [],
+          "responses": [{
+            "name": "303",
+            "description": "Request is redirected to the provided redirect_uri if it matches one of the URLs configured for the client.\n",
+            "headers": [{
+              "name": "Content-Type",
+              "value": "application/json"
+            }, {
+              "name": "```",
+              "value": ""
+            }, {
+              "name": "Location",
+              "value": "redirect_uri?code=...&state=..."
+            }, {
+              "name": "```",
+              "value": ""
+            }],
+            "body": "```\n{\n\"code\": \"alphanumericString\",\n\"state\": \"same-as-provided-state\"\n}\n```\n\n",
+            "schema": "",
+            "content": [{
+              "element": "asset",
+              "attributes": {
+                "role": "bodyExample"
+              },
+              "content": "```\n{\n\"code\": \"alphanumericString\",\n\"state\": \"same-as-provided-state\"\n}\n```\n\n"
+            }]
+          }]
+        }]
+      }, {
+        "name": "Fetch an access token",
+        "description": "",
+        "method": "POST",
+        "parameters": [{
+          "name": "client_id",
+          "description": "The client ID you received from Skedify when you registered your client implementation.",
+          "type": "string",
+          "required": true,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "client_secret",
+          "description": "The client secret you received when you registered your client implementation.",
+          "type": "string",
+          "required": true,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "code",
+          "description": "The code you received as a response to the previous step.",
+          "type": "string",
+          "required": true,
+          "default": "",
+          "example": "",
+          "values": []
+        }, {
+          "name": "redirect_uri",
+          "description": "The URL where users will be sent after authorization.",
+          "type": "string",
+          "required": false,
+          "default": "",
+          "example": "",
+          "values": []
+        }],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": "/oauth/access_token"
+        },
+        "content": [],
+        "examples": [{
+          "name": "",
+          "description": "",
+          "requests": [],
+          "responses": [{
+            "name": "200",
+            "description": "",
+            "headers": [{
+              "name": "Content-Type",
+              "value": "application/json"
+            }],
+            "body": "Response contains a hexadecimal access_token, the type of token that is returned and\n\n{\n\"access_token\": \"0123456789abcdef\",\n\"scope\": \"\",\n\"expires_in\": 3600000,\n\"token_type\": \"Bearer\"\n}\n",
+            "schema": "",
+            "content": [{
+              "element": "asset",
+              "attributes": {
+                "role": "bodyExample"
+              },
+              "content": "Response contains a hexadecimal access_token, the type of token that is returned and\n\n{\n\"access_token\": \"0123456789abcdef\",\n\"scope\": \"\",\n\"expires_in\": 3600000,\n\"token_type\": \"Bearer\"\n}\n"
+            }]
+          }]
+        }]
+      }],
+      "content": []
+    }]
+  }, {
+    "element": "category",
+    "attributes": {
+      "name": "Enterprise"
+    },
+    "content": [{
+      "element": "resource",
+      "name": "Enterprises",
+      "description": "",
+      "uriTemplate": "/enterprises",
+      "model": {},
+      "parameters": [],
+      "actions": [{
+        "name": "Retrieve Enterprises",
+        "description": "Retrieve the list of enterprises.\n\n",
+        "method": "GET",
+        "parameters": [],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": ""
+        },
+        "content": [],
+        "examples": [{
+          "name": "",
+          "description": "",
+          "requests": [],
+          "responses": [{
+            "name": "200",
+            "description": "",
+            "headers": [],
+            "body": "",
+            "schema": "",
+            "content": []
+          }]
+        }]
+      }, {
+        "name": "Create an enterprise",
+        "description": "",
+        "method": "POST",
+        "parameters": [],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": ""
+        },
+        "content": [],
+        "examples": [{
+          "name": "",
+          "description": "",
+          "requests": [{
+            "name": "",
+            "description": "",
+            "headers": [],
+            "body": "",
+            "schema": "",
+            "content": []
+          }],
+          "responses": [{
+            "name": "201",
+            "description": "",
+            "headers": [],
+            "body": "",
+            "schema": "",
+            "content": []
+          }, {
+            "name": "400",
+            "description": "",
+            "headers": [],
+            "body": "Validation error\n",
+            "schema": "",
+            "content": [{
+              "element": "asset",
+              "attributes": {
+                "role": "bodyExample"
+              },
+              "content": "Validation error\n"
+            }]
+          }]
+        }]
+      }, {
+        "name": "Retrieve Enterprise",
+        "description": "### Edit (part of) an enterprise [PATCH /enterprises/{eid}]\n\n",
+        "method": "GET",
+        "parameters": [],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": "/enterprises/{eid}"
+        },
+        "content": [],
+        "examples": []
+      }, {
+        "name": "Replace an enterprise",
+        "description": "",
+        "method": "PUT",
+        "parameters": [],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": "/enterprises/{eid}"
+        },
+        "content": [],
+        "examples": []
+      }, {
+        "name": "Remove an enterprise",
+        "description": "",
+        "method": "DELETE",
+        "parameters": [],
+        "attributes": {
+          "relation": "",
+          "uriTemplate": "/enterprises/{eid}"
+        },
+        "content": [],
+        "examples": []
+      }],
+      "content": []
+    }]
+  }, {
+    "element": "category",
+    "content": []
+  }]
+}
